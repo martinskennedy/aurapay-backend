@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AuraPay.Application.Services
 {
-    internal class TransactionService : ITransactionService
+    public class TransactionService : ITransactionService
     {
         private readonly IAccountRepository _accountRepository;
         private readonly ITransactionRepository _transactionRepository;

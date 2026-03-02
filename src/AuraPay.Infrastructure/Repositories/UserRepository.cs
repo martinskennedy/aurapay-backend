@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AuraPay.Infrastructure.Repositories
 {
-    internal class UserRepository : IUserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly AuraPayDbContext _context;
 

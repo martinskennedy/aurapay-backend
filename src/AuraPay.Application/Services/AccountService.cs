@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AuraPay.Application.Services
 {
-    internal class AccountService : IAccountService
+    public class AccountService : IAccountService
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IUnitOfWork _unitOfWork;
