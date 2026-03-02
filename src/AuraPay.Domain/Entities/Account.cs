@@ -11,8 +11,10 @@ namespace AuraPay.Domain.Entities
         public Guid Id { get; private set; }
         public string AccountNumber { get; private set; }
         public decimal Balance { get; private set; }
-        public Guid UserId { get; private set; } // Referência ao usuário do Supabase Auth
+        public Guid UserId { get; private set; }
         public DateTime CreatedAt { get; private set; }
+
+        public User User { get; private set; }
 
         // Construtor para o EF Core
         protected Account() { }
