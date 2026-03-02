@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuraPay.Infrastructure.Migrations
 {
     [DbContext(typeof(AuraPayDbContext))]
-    [Migration("20260302194121_InitialCreate")]
+    [Migration("20260302213010_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
