@@ -1,11 +1,65 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37012.4 d17.14
+VisualStudioVersion = 17.14.37012.4
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraPay.Domain", "src\AuraPay.Domain\AuraPay.Domain.csproj", "{DBC1E349-891D-45D7-8AF2-F36BD2D4C2E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraPay.Application", "src\AuraPay.Application\AuraPay.Application.csproj", "{3266A2D5-05C9-448C-A130-3DDA68B6F53B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraPay.Infrastructure", "src\AuraPay.Infrastructure\AuraPay.Infrastructure.csproj", "{97429F50-5E0E-4970-A48A-2548FB49636E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraPay.WebAPI", "src\AuraPay.WebAPI\AuraPay.WebAPI.csproj", "{32EA2932-50A8-4D90-B241-019D2D9BB4F4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C24235B2-2B4D-4B5B-A6E9-C065A59334AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraPay.UnitTests", "tests\AuraPay.UnitTests\AuraPay.UnitTests.csproj", "{68CB3B62-91F2-4FBD-B55D-55F756F99907}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraPay.IntegrationTests", "tests\AuraPay.IntegrationTests\AuraPay.IntegrationTests.csproj", "{CE0994C7-A52A-4B92-B937-AAA6962B6085}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DBC1E349-891D-45D7-8AF2-F36BD2D4C2E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBC1E349-891D-45D7-8AF2-F36BD2D4C2E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBC1E349-891D-45D7-8AF2-F36BD2D4C2E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBC1E349-891D-45D7-8AF2-F36BD2D4C2E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3266A2D5-05C9-448C-A130-3DDA68B6F53B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3266A2D5-05C9-448C-A130-3DDA68B6F53B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3266A2D5-05C9-448C-A130-3DDA68B6F53B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3266A2D5-05C9-448C-A130-3DDA68B6F53B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97429F50-5E0E-4970-A48A-2548FB49636E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97429F50-5E0E-4970-A48A-2548FB49636E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97429F50-5E0E-4970-A48A-2548FB49636E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97429F50-5E0E-4970-A48A-2548FB49636E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32EA2932-50A8-4D90-B241-019D2D9BB4F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32EA2932-50A8-4D90-B241-019D2D9BB4F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32EA2932-50A8-4D90-B241-019D2D9BB4F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32EA2932-50A8-4D90-B241-019D2D9BB4F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68CB3B62-91F2-4FBD-B55D-55F756F99907}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68CB3B62-91F2-4FBD-B55D-55F756F99907}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68CB3B62-91F2-4FBD-B55D-55F756F99907}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68CB3B62-91F2-4FBD-B55D-55F756F99907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE0994C7-A52A-4B92-B937-AAA6962B6085}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE0994C7-A52A-4B92-B937-AAA6962B6085}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE0994C7-A52A-4B92-B937-AAA6962B6085}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE0994C7-A52A-4B92-B937-AAA6962B6085}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DBC1E349-891D-45D7-8AF2-F36BD2D4C2E7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{3266A2D5-05C9-448C-A130-3DDA68B6F53B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{97429F50-5E0E-4970-A48A-2548FB49636E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{32EA2932-50A8-4D90-B241-019D2D9BB4F4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{68CB3B62-91F2-4FBD-B55D-55F756F99907} = {C24235B2-2B4D-4B5B-A6E9-C065A59334AD}
+		{CE0994C7-A52A-4B92-B937-AAA6962B6085} = {C24235B2-2B4D-4B5B-A6E9-C065A59334AD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BB3B8E58-20E9-4990-A963-9BC41E1F9CD5}
