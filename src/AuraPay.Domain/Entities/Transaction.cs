@@ -15,6 +15,8 @@ namespace AuraPay.Domain.Entities
         public TransactionType Type { get; private set; }
         public DateTime Timestamp { get; private set; }
 
+        public virtual Account Account { get; private set; }
+
         protected Transaction() { }
 
         public Transaction(Guid accountId, decimal amount, TransactionType type)
