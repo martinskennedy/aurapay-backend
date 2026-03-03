@@ -1,13 +1,14 @@
-using Serilog;
 using AuraPay.Application.Interfaces;
 using AuraPay.Application.Services;
 using AuraPay.Domain.Interfaces;
 using AuraPay.Infrastructure.Data;
 using AuraPay.Infrastructure.Repositories;
+using AuraPay.WebAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +95,8 @@ try
 {
     Log.Information("Iniciando AuraPay Web API...");
     var app = builder.Build();
+
+    app.UseMiddleware<ExceptionMiddleware>();
 
     app.UseSerilogRequestLogging();
 
