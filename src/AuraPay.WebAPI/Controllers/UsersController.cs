@@ -8,7 +8,7 @@ namespace AuraPay.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController : BaseController
     {
         private readonly IUserService _userService;
         private readonly ILogger<UsersController> _logger;
@@ -45,16 +45,6 @@ namespace AuraPay.WebAPI.Controllers
             }
 
             return Ok(user);
-        }
-
-        protected Guid GetExternalId()
-        {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (claim == null || !Guid.TryParse(claim.Value, out var guidId))
-            {
-                throw new Exception("Token inválido ou ID de usuário ausente.");
-            }
-            return guidId;
         }
     }
 }
