@@ -1,6 +1,8 @@
 ﻿using AuraPay.Application.DTOs;
 using AuraPay.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AuraPay.WebAPI.Controllers
 {
@@ -18,20 +20,41 @@ namespace AuraPay.WebAPI.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] CreateUserRequestDto request)
         {
-            _logger.LogInformation("Iniciando registro para o email: {Email}", request.Email);
+            _logger.LogInformation("Tentativa de registro: {Email}", request.Email);
 
-            try
+            var user = await _userService.RegisterUserAsync(request);
+            return Ok(user);
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetMe()
+        {
+            var externalId = GetExternalId();
+            _logger.LogInformation("Buscando perfil para ExternalId: {ExternalId}", externalId);
+
+            var user = await _userService.GetByExternalIdAsync(externalId);
+
+            if (user == null)
             {
-                var user = await _userService.RegisterUserAsync(request);
-                return Ok(user);
+                _logger.LogWarning("Usuário autenticado no Supabase mas não encontrado no AuraPay: {ExternalId}", externalId);
+                return NotFound(new { message = "Usuário não sincronizado." });
             }
-            catch (Exception ex)
+
+            return Ok(user);
+        }
+
+        protected Guid GetExternalId()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (claim == null || !Guid.TryParse(claim.Value, out var guidId))
             {
-                _logger.LogError(ex, "Erro ao registrar usuário {Email}", request.Email);
-                return BadRequest(new { message = ex.Message });
+                throw new Exception("Token inválido ou ID de usuário ausente.");
             }
+            return guidId;
         }
     }
 }
