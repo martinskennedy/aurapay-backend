@@ -1,3 +1,4 @@
+using Serilog;
 using AuraPay.Application.Interfaces;
 using AuraPay.Application.Services;
 using AuraPay.Domain.Interfaces;
@@ -6,6 +7,15 @@ using AuraPay.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// --- CONFIGURAÇÃO DO SERILOG ---
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/aurapay-.txt", rollingInterval: RollingInterval.Day)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Host.UseSerilog(); // Diz ao .NET para usar Serilog
 
 // 1. Configurar o Banco de Dados (PostgreSQL/Supabase)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -30,19 +40,34 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Information("Iniciando AuraPay Web API...");
+    var app = builder.Build();
+
+    // Middlewares
+    app.UseSerilogRequestLogging(); // Loga automaticamente todas as requisições HTTP
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "A aplicação falhou ao iniciar!");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
