@@ -2,6 +2,7 @@
 using AuraPay.Application.Interfaces;
 using AuraPay.Domain.Entities;
 using AuraPay.Domain.Interfaces;
+using AutoMapper.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;

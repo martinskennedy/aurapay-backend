@@ -91,6 +91,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddHttpClient();
+
 try
 {
     Log.Information("Iniciando AuraPay Web API...");
