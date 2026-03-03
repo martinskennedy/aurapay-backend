@@ -11,6 +11,7 @@ namespace AuraPay.Domain.Interfaces
     {
         Task<Account?> GetByIdAsync(Guid id);
         Task<Account?> GetByUserIdAsync(Guid userId);
+        Task<Account?> GetByAccountNumberAsync(string accountNumber);
         Task AddAsync(Account account);
         void Update(Account account);
     }

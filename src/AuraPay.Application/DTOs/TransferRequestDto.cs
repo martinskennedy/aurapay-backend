@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace AuraPay.Application.DTOs
 {
-    public record TransferRequestDto(Guid DestinationAccountId, decimal Amount);
+    public record TransferRequestDto(string DestinationAccountNumber, decimal Amount);
 }
