@@ -14,30 +14,35 @@ namespace AuraPay.Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IAccountService _accountService;
+        private readonly IAccountRepository _accountRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UserService(IUserRepository userRepository, IAccountService accountService, IUnitOfWork unitOfWork)
+        public UserService(IUserRepository userRepository, IAccountRepository accountRepository, IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
-            _accountService = accountService;
+            _accountRepository = accountRepository;
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<UserDto> RegisterUserAsync(CreateUserRequestDto request)
+        public async Task<UserDto> RegisterUserAsync(CreateUserRequestDto request, Guid externalId)
         {
-            // 1. Validar se utilizador já existe por email ou documento
-            var existingUser = await _userRepository.GetByEmailAsync(request.Email);
-            if (existingUser != null) throw new Exception("Utilizador já registado.");
+            // 1. Verificar se o usuário já existe para evitar duplicidade
+            var existingUser = await _userRepository.GetByExternalIdAsync(externalId);
+            if (existingUser != null) throw new Exception("Usuário já sincronizado.");
 
             // 2. Criar a entidade User
-            var newUser = new User(request.FullName, request.Email, request.Document, request.ExternalId);
-
+            var newUser = new User(request.FullName, request.Email, request.Document, externalId);
             await _userRepository.AddAsync(newUser);
 
-            // 3. Criar automaticamente a conta para este novo utilizador
-            // Passando o ID do NOSSO User, não o do Supabase
-            await _accountService.CreateAccountAsync(newUser.Id);
+            // 3. CRIAR A CONTA AUTOMATICAMENTE
+            // Gerar um número de conta aleatório simples para o teste
+            var randomAcc = new Random().Next(100000, 999999).ToString();
+            var account = new Account(newUser.Id, randomAcc);
+
+            // Adicionar saldo inicial para testes
+            account.Deposit(500);
+
+            await _accountRepository.AddAsync(account);
 
             // 4. Salvar tudo (User + Account) numa única transação
             await _unitOfWork.CommitAsync();

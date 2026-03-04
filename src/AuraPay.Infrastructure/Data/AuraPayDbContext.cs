@@ -22,6 +22,18 @@ namespace AuraPay.Infrastructure.Data
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuraPayDbContext).Assembly);
 
+            modelBuilder.Entity<Transaction>(entity =>
+            {
+                entity.ToTable("Transactions");
+                entity.HasKey(t => t.Id);
+
+                // Força o EF a usar a coluna AccountId que já existe no banco
+                entity.HasOne(t => t.Account)
+                      .WithMany() // Se a Account não tiver uma lista de Transactions, deixe vazio
+                      .HasForeignKey(t => t.AccountId)
+                      .IsRequired();
+            });
+
             base.OnModelCreating(modelBuilder);
         }
     }

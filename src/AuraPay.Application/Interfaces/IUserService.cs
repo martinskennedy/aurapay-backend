@@ -9,7 +9,7 @@ namespace AuraPay.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<UserDto> RegisterUserAsync(CreateUserRequestDto request);
+        Task<UserDto> RegisterUserAsync(CreateUserRequestDto request, Guid externalId);
         Task<UserDto?> GetByExternalIdAsync(Guid externalId);
     }
 }

@@ -19,13 +19,25 @@ namespace AuraPay.WebAPI.Controllers
             _logger = logger;
         }
 
+        //[HttpPost("register-teste")]
+        //[AllowAnonymous] // Libera sem token apenas para esse teste
+        //public async Task<IActionResult> RegisterTeste([FromBody] CreateUserRequestDto request, [FromQuery] Guid idManual)
+        //{
+        //    // Usamos o ID que você copiou do Supabase Auth (aquele 2cc84684...)
+        //    var user = await _userService.RegisterUserAsync(request, idManual);
+        //    return Ok(user);
+        //}
+
         [HttpPost("register")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> Register([FromBody] CreateUserRequestDto request)
         {
-            _logger.LogInformation("Tentativa de registro: {Email}", request.Email);
+            // Pegamos o ID real vindo do Token do Supabase
+            var externalId = GetExternalId();
+            _logger.LogInformation("Sincronizando usuário do Supabase: {ExternalId}", externalId);
 
-            var user = await _userService.RegisterUserAsync(request);
+            // Passamos o ID do token para o serviço
+            var user = await _userService.RegisterUserAsync(request, externalId);
             return Ok(user);
         }
 
