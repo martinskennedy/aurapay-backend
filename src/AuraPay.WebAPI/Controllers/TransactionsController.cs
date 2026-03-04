@@ -1,6 +1,7 @@
 ﻿using AuraPay.Application.DTOs;
 using AuraPay.Application.Interfaces;
 using AuraPay.Domain.Interfaces;
+using AuraPay.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,13 +14,15 @@ namespace AuraPay.WebAPI.Controllers
         private readonly ITransactionService _transactionService;
         private readonly IUserService _userService;
         private readonly ITransactionRepository _transactionRepository;
+        private readonly IAccountRepository _accountRepository;
         private readonly ILogger<TransactionsController> _logger;
 
-        public TransactionsController(ITransactionService transactionService, IUserService userService, ITransactionRepository transactionRepository, ILogger<TransactionsController> logger)
+        public TransactionsController(ITransactionService transactionService, IUserService userService, ITransactionRepository transactionRepository, IAccountRepository accountRepository, ILogger<TransactionsController> logger)
         {
             _transactionService = transactionService;
             _userService = userService;
             _transactionRepository = transactionRepository;
+            _accountRepository = accountRepository;
             _logger = logger;
         }
 
@@ -56,17 +59,33 @@ namespace AuraPay.WebAPI.Controllers
         }
 
         [HttpGet("history")]
+        [Authorize]
         public async Task<IActionResult> GetHistory()
         {
+            // 1. Pega o ID do Supabase que está no Token
             var externalId = GetExternalId();
             _logger.LogInformation("Buscando extrato para: {ExternalId}", externalId);
 
+            // 2. Busca o usuário local (para ter o Id do banco)
             var user = await _userService.GetByExternalIdAsync(externalId);
             if (user == null) return Unauthorized();
 
-            var transactions = await _transactionRepository.GetByAccountIdAsync(user.Id);
+            // 3. Busca a CONTA usando o Id do usuário
+            var account = await _accountRepository.GetByUserIdAsync(user.Id);
+            if (account == null) return NotFound("Conta não encontrada.");
 
-            return Ok(transactions);
+            // 4. Busca pelo ID da CONTA
+            var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);
+
+            // 5. Mapeia para o DTO
+            var response = transactions.Select(t => new TransactionResponseDto(
+                t.Id,
+                t.Amount,
+                t.Type.ToString(),
+                t.Timestamp
+            ));
+
+            return Ok(response);
         }
     }
 }

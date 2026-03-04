@@ -16,13 +16,15 @@ namespace AuraPay.Application.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly ITransactionRepository _transactionRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TransactionService> _logger;
 
-        public TransactionService(IAccountRepository accountRepository, ITransactionRepository transactionRepository, IUnitOfWork unitOfWork, ILogger<TransactionService> logger)
+        public TransactionService(IAccountRepository accountRepository, ITransactionRepository transactionRepository, IUserRepository userRepository, IUnitOfWork unitOfWork, ILogger<TransactionService> logger)
         {
             _accountRepository = accountRepository;
             _transactionRepository = transactionRepository;
+            _userRepository = userRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
@@ -64,6 +66,27 @@ namespace AuraPay.Application.Services
             _logger.LogInformation("Transferência concluída com sucesso. Transação ID: {DebitId}", debitNote.Id);
 
             return result > 0;
+        }
+
+        public async Task<IEnumerable<TransactionResponseDto>> GetHistoryAsync(Guid externalId)
+        {
+            // 1. Achar o usuário local pelo ID do Supabase
+            var user = await _userRepository.GetByExternalIdAsync(externalId);
+            if (user == null) throw new Exception("Usuário não sincronizado.");
+
+            // 2. Achar a conta do usuário
+            var account = await _accountRepository.GetByUserIdAsync(user.Id);
+            if (account == null) throw new Exception("Conta não encontrada.");
+
+            // 3. Buscar as transações usando o ID da CONTA (que é o que está na tabela Transactions)
+            var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);
+
+            return transactions.Select(t => new TransactionResponseDto(
+                t.Id,
+                t.Amount,
+                t.Type.ToString(),
+                t.Timestamp
+            ));
         }
     }
 }

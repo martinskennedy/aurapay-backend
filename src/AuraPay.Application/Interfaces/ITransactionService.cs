@@ -10,5 +10,6 @@ namespace AuraPay.Application.Interfaces
     public interface ITransactionService
     {
         Task<bool> TransferAsync(Guid originUserId, TransferRequestDto request);
+        Task<IEnumerable<TransactionResponseDto>> GetHistoryAsync(Guid userId);
     }
 }
