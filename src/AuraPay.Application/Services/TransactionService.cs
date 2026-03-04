@@ -37,11 +37,11 @@ namespace AuraPay.Application.Services
 
             // 2. Buscar conta de origem pelo UserId (quem está logado)
             var originAccount = await _accountRepository.GetByUserIdAsync(originUserId);
-            if (originAccount == null) throw new Exception("Conta de origem não encontrada.");
+            if (originAccount == null) throw new KeyNotFoundException("Conta de origem não encontrada.");
 
             // 3. Buscar conta de destino pelo numero
             var destinationAccount = await _accountRepository.GetByAccountNumberAsync(request.DestinationAccountNumber);
-            if (destinationAccount == null) throw new Exception("Conta de destino não encontrada.");
+            if (destinationAccount == null) throw new KeyNotFoundException("Conta de destino não encontrada.");
 
             // 4. Impedir transferência para si mesmo
             if (originAccount.Id == destinationAccount.Id)
@@ -72,11 +72,11 @@ namespace AuraPay.Application.Services
         {
             // 1. Achar o usuário local pelo ID do Supabase
             var user = await _userRepository.GetByExternalIdAsync(externalId);
-            if (user == null) throw new Exception("Usuário não sincronizado.");
+            if (user == null) throw new KeyNotFoundException("Usuário não sincronizado.");
 
             // 2. Achar a conta do usuário
             var account = await _accountRepository.GetByUserIdAsync(user.Id);
-            if (account == null) throw new Exception("Conta não encontrada.");
+            if (account == null) throw new KeyNotFoundException("Conta não encontrada.");
 
             // 3. Buscar as transações usando o ID da CONTA (que é o que está na tabela Transactions)
             var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);

@@ -1,9 +1,12 @@
 using AuraPay.Application.Interfaces;
 using AuraPay.Application.Services;
+using AuraPay.Application.Validators;
 using AuraPay.Domain.Interfaces;
 using AuraPay.Infrastructure.Data;
 using AuraPay.Infrastructure.Repositories;
 using AuraPay.WebAPI.Middlewares;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -93,6 +96,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// 6. Adicionar FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<TransferRequestDtoValidator>();
+
+// 7. Adicionar HttpClient para chamadas externas (ex: Supabase)
 builder.Services.AddHttpClient();
 
 try
