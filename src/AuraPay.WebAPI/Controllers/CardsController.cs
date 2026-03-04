@@ -1,4 +1,6 @@
-﻿using AuraPay.Application.Interfaces;
+﻿using AuraPay.Application.DTOs;
+using AuraPay.Application.Interfaces;
+using AuraPay.Application.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,14 +21,14 @@ namespace AuraPay.WebAPI.Controllers
         }
 
         [HttpPost("virtual")]
-        public async Task<IActionResult> CreateVirtualCard([FromBody] string holderName)
+        public async Task<IActionResult> CreateVirtualCard([FromBody] CreateCardRequest request)
         {
             var externalId = GetExternalId();
             var user = await _userService.GetByExternalIdAsync(externalId);
 
             if (user == null) return Unauthorized();
 
-            var card = await _cardService.CreateVirtualCardAsync(user.Id, holderName);
+            var card = await _cardService.CreateVirtualCardAsync(user.Id, request.HolderName);
             return Ok(card);
         }
 
