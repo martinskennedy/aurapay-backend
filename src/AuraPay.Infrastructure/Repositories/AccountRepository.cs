@@ -26,7 +26,7 @@ namespace AuraPay.Infrastructure.Repositories
 
         public async Task<Account?> GetByUserIdAsync(Guid userId)
         {
-            return await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId); // UserId vem do Supabase Auth
+            return await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
         }
 
         public async Task AddAsync(Account account)

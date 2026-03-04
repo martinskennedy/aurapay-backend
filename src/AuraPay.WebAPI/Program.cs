@@ -31,11 +31,13 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<ICardRepository, CardRepository>();
 
 // 3. Registrar Serviços (Application)
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<ICardService, CardService>();
 
 // 4. CONFIGURAÇÃO JWT
 var supabaseUrl = "https://tgfipyvrglihoqwtfkug.supabase.co/auth/v1";
