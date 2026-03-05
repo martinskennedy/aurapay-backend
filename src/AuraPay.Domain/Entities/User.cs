@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AuraPay.IntegrationTests")]
+
 namespace AuraPay.Domain.Entities
 {
     public class User
@@ -21,6 +23,16 @@ namespace AuraPay.Domain.Entities
         public User(string fullName, string email, string document, Guid externalId)
         {
             Id = Guid.NewGuid();
+            FullName = fullName;
+            Email = email;
+            Document = document;
+            ExternalId = externalId;
+        }
+
+        // Construtor INTERNAL para Testes
+        internal User(Guid id, string fullName, string email, string document, Guid externalId)
+        {
+            Id = id;
             FullName = fullName;
             Email = email;
             Document = document;

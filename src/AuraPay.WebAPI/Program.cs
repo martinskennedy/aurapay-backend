@@ -137,3 +137,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Para permitir que o WebApplicationFactory<Program> funcione nos testes de integração, precisamos tornar a classe Program pública e parcial
+public partial class Program { }
