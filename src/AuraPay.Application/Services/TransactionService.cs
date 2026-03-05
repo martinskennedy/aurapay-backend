@@ -37,39 +37,72 @@ namespace AuraPay.Application.Services
 
             // 2. Buscar conta de origem pelo UserId (quem está logado)
             var originAccount = await _accountRepository.GetByUserIdAsync(originUserId);
-            if (originAccount == null) throw new KeyNotFoundException("Conta de origem não encontrada.");
+            if (originAccount == null)
+            {
+                _logger.LogWarning("Transferência abortada: Usuário {UserId} não possui conta.", originUserId);
+                throw new KeyNotFoundException("Conta de origem não encontrada.");
+            }
 
             // 3. Buscar conta de destino pelo numero
             var destinationAccount = await _accountRepository.GetByAccountNumberAsync(request.DestinationAccountNumber);
-            if (destinationAccount == null) throw new KeyNotFoundException("Conta de destino não encontrada.");
+            if (destinationAccount == null)
+            {
+                _logger.LogWarning("Transferência abortada: Conta de destino {AccNumber} inexistente.", request.DestinationAccountNumber);
+                throw new KeyNotFoundException("Conta de destino não encontrada.");
+            }
 
             // 4. Impedir transferência para si mesmo
             if (originAccount.Id == destinationAccount.Id)
+            {
+                _logger.LogWarning("Tentativa de transferência para a própria conta. UserId: {UserId}", originUserId);
                 throw new InvalidOperationException("Não é possível transferir para a própria conta.");
+            }
 
-            // 5. Executar a lógica de negócio (Regras de Domínio)
-            // Valida se há saldo suficiente
-            originAccount.Withdraw(request.Amount);
-            destinationAccount.Deposit(request.Amount);
+            try
+            {
+                // 5. Executar a lógica de negócio (Regras de Domínio)
+                // Valida se há saldo suficiente
+                originAccount.Withdraw(request.Amount);
+                destinationAccount.Deposit(request.Amount);
 
-            // 6. Criar os registros de extrato (Auditoria)
-            var debitNote = new Transaction(originAccount.Id, request.Amount, TransactionType.TransferOut);
-            var creditNote = new Transaction(destinationAccount.Id, request.Amount, TransactionType.TransferIn);
+                // 6. Criar os registros de extrato (Auditoria)
+                var debitNote = new Transaction(originAccount.Id, request.Amount, TransactionType.TransferOut);
+                var creditNote = new Transaction(destinationAccount.Id, request.Amount, TransactionType.TransferIn);
 
-            await _transactionRepository.AddAsync(debitNote);
-            await _transactionRepository.AddAsync(creditNote);
+                await _transactionRepository.AddAsync(debitNote);
+                await _transactionRepository.AddAsync(creditNote);
 
-            // 5. Persistir as mudanças no banco de forma ATÔMICA
-            // O CommitAsync salva as duas contas e as duas transações ou NADA caso ocorra algum erro.
-            var result = await _unitOfWork.CommitAsync();
+                // 5. Persistir as mudanças no banco de forma ATÔMICA
+                // O CommitAsync salva as duas contas e as duas transações ou NADA caso ocorra algum erro.
+                var result = await _unitOfWork.CommitAsync();
 
-            _logger.LogInformation("Transferência concluída com sucesso. Transação ID: {DebitId}", debitNote.Id);
+                if (result > 0)
+                {
+                    _logger.LogInformation("Transferência concluída com sucesso. Origem: {Origem}, Destino: {Destino}, Valor: {Valor}",
+                        originAccount.AccountNumber, destinationAccount.AccountNumber, request.Amount);
 
-            return result > 0;
+                    return true;
+                }
+
+                _logger.LogError("Falha ao salvar a transferência no banco de dados.");
+                return false;
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Transferência negada: {Motivo}. Origem: {UserId}", ex.Message, originUserId);
+                throw; // Deixa o Middleware retornar 400
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, "ERRO INESPERADO durante transferência do usuário {UserId}", originUserId);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<TransactionResponseDto>> GetHistoryAsync(Guid externalId)
         {
+            _logger.LogInformation("Buscando histórico para o ExternalId: {ExternalId}", externalId);
+
             // 1. Achar o usuário local pelo ID do Supabase
             var user = await _userRepository.GetByExternalIdAsync(externalId);
             if (user == null) throw new KeyNotFoundException("Usuário não sincronizado.");
@@ -80,6 +113,9 @@ namespace AuraPay.Application.Services
 
             // 3. Buscar as transações usando o ID da CONTA (que é o que está na tabela Transactions)
             var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);
+
+            _logger.LogInformation("Histórico retornado: {Count} transações encontradas para a conta {AccId}",
+                transactions.Count(), account.Id);
 
             return transactions.Select(t => new TransactionResponseDto(
                 t.Id,
