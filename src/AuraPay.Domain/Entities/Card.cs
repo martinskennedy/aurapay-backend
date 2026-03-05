@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AuraPay.UnitTests")]
+
 namespace AuraPay.Domain.Entities
 {
     public class Card
@@ -17,7 +19,7 @@ namespace AuraPay.Domain.Entities
         public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
 
-        protected Card() { }
+        public Card() { }
 
         public Card(Guid accountId, string holderName, string cardNumber, string cvv)
         {
@@ -34,5 +36,15 @@ namespace AuraPay.Domain.Entities
         public void Deactivate() => IsActive = false;
 
         public void Activate() => IsActive = true;
+
+        // Construtor INTERNAL para Testes
+        internal Card(Guid id, Guid accountId, string holderName, string cardNumber, string cvv)
+        {
+            Id = id;
+            AccountId = accountId; // Adicione esta linha se não estiver lá
+            CardHolderName = holderName;
+            CardNumber = cardNumber;
+            CVV = cvv;
+        }
     }
 }

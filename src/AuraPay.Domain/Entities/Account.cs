@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AuraPay.UnitTests")]
+
 namespace AuraPay.Domain.Entities
 {
     public class Account
@@ -39,6 +41,13 @@ namespace AuraPay.Domain.Entities
             if (amount <= 0) throw new ArgumentException("O valor do saque deve ser positivo.");
             if (Balance < amount) throw new InvalidOperationException("Saldo insuficiente.");
             Balance -= amount;
+        }
+
+        // Construtor INTERNAL para Testes
+        internal Account(Guid id, Guid userId)
+        {
+            Id = id;
+            UserId = userId;
         }
     }
 }
