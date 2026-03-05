@@ -44,10 +44,11 @@ namespace AuraPay.Domain.Entities
         }
 
         // Construtor INTERNAL para Testes
-        internal Account(Guid id, Guid userId)
+        internal Account(Guid id, Guid userId, decimal balance = 0)
         {
             Id = id;
             UserId = userId;
+            Balance = balance;
         }
     }
 }

@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AuraPay.WebAPI\AuraPay.WebAPI.csproj" />
+    <ProjectReference Include="..\..\src\AuraPay.Application\AuraPay.Application.csproj" />
+    <ProjectReference Include="..\..\src\AuraPay.Domain\AuraPay.Domain.csproj" />
+    <ProjectReference Include="..\..\src\AuraPay.Infrastructure\AuraPay.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
