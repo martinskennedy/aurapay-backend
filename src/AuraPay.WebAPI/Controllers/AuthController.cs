@@ -18,6 +18,18 @@ namespace AuraPay.WebAPI.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Realiza a autenticação do usuário junto ao Supabase Auth.
+        /// </summary>
+        /// <remarks>
+        /// Ao fornecer e-mail e senha válidos, você receberá um **accessToken**.
+        /// Use este token no botão "Authorize" (campo Bearer) para acessar as rotas protegidas.
+        /// </remarks>
+        /// <param name="request">Credenciais de acesso (Email e Password).</param>
+        /// <returns>O token de acesso JWT.</returns>
+        /// <response code="200">Autenticação bem-sucedida, retorna o token JWT.</response>
+        /// <response code="401">E-mail ou senha inválidos.</response>
+        /// <response code="500">Erro na comunicação com o provedor de identidade (Supabase).</response>
         [AllowAnonymous] // Permite logar sem estar autenticado
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)

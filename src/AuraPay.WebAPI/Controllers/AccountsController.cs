@@ -24,6 +24,17 @@ namespace AuraPay.WebAPI.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Obtém o saldo atual e os dados básicos da conta do usuário autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Retorna o saldo disponível em tempo real e o número da conta formatado. 
+        /// O ID do usuário é extraído automaticamente do Token JWT.
+        /// </remarks>
+        /// <returns>Dados da conta e saldo disponível.</returns>
+        /// <response code="200">Saldo retornado com sucesso.</response>
+        /// <response code="401">Usuário não autenticado.</response>
+        /// <response code="404">Usuário não sincronizado ou conta não localizada no sistema local.</response>
         [HttpGet("balance")]
         public async Task<IActionResult> GetBalance()
         {

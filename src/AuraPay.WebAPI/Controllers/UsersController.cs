@@ -28,6 +28,16 @@ namespace AuraPay.WebAPI.Controllers
         //    return Ok(user);
         //}
 
+        /// <summary>
+        /// Cria um novo usuário.
+        /// </summary>
+        /// <remarks>
+        /// Ele extrai o ID do provedor de identidade do Token e cria o registro local, incluindo a conta bancária inicial.
+        /// </remarks>
+        /// <param name="request">Dados básicos do perfil (Nome, Documento, etc).</param>
+        /// <response code="200">Usuário sincronizado e conta criada com sucesso.</response>
+        /// <response code="400">Dados de entrada inválidos ou usuário já sincronizado.</response>
+        /// <response code="401">Token de autenticação ausente ou inválido.</response>
         [HttpPost("register")]
         [Authorize]
         public async Task<IActionResult> Register([FromBody] CreateUserRequestDto request)
@@ -41,6 +51,12 @@ namespace AuraPay.WebAPI.Controllers
             return Ok(user);
         }
 
+        /// <summary>
+        /// Obtém os dados do perfil do usuário atualmente autenticado.
+        /// </summary>
+        /// <response code="200">Dados do perfil recuperados com sucesso.</response>
+        /// <response code="401">Token inválido.</response>
+        /// <response code="404">Usuário autenticado mas ainda não sincronizado (chame o /register).</response>
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetMe()
