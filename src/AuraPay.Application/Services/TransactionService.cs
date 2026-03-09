@@ -119,7 +119,7 @@ namespace AuraPay.Application.Services
 
             return transactions.Select(t => new TransactionResponseDto(
                 t.Id,
-                t.Amount,
+                Math.Round(t.Amount, 2),
                 t.Type.ToString(),
                 t.Timestamp
             ));

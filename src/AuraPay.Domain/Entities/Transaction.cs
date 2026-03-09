@@ -23,7 +23,7 @@ namespace AuraPay.Domain.Entities
         {
             Id = Guid.NewGuid();
             AccountId = accountId;
-            Amount = amount;
+            Amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
             Type = type;
             Timestamp = DateTime.UtcNow;
         }
