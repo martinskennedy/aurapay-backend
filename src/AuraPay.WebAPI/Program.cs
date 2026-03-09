@@ -42,6 +42,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<ICurrencyExchangeService, CurrencyExchangeService>();
+builder.Services.AddScoped<IInternationalTransactionService, InternationalTransactionService>();
 
 // 4. CONFIGURAÇÃO JWT
 var supabaseUrl = "https://tgfipyvrglihoqwtfkug.supabase.co/auth/v1";
