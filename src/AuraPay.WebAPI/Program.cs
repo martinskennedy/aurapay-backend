@@ -68,6 +68,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AuraPayFrontPolicy", policy =>
+    {
+        policy.AllowAnyOrigin()   // Trocar pelo domínio do Vercel ex: .WithOrigins("https://seu-front.vercel.app")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -112,7 +122,10 @@ builder.Services.AddHttpClient();
 try
 {
     Log.Information("Iniciando AuraPay Web API...");
+
     var app = builder.Build();
+
+    app.UseCors("AuraPayFrontPolicy");
 
     app.UseMiddleware<ExceptionMiddleware>();
 
