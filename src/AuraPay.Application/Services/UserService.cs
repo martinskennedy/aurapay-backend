@@ -36,7 +36,7 @@ namespace AuraPay.Application.Services
             if (existingUser != null)
             {
                 _logger.LogWarning("Tentativa de registro duplicado ignorada. ExternalId: {ExternalId}", externalId);
-                throw new Exception("Usuário já sincronizado.");
+                throw new InvalidOperationException("Usuário já sincronizado.");
             }
 
             try
@@ -75,7 +75,7 @@ namespace AuraPay.Application.Services
             catch (Exception ex)
             {
                 _logger.LogCritical(ex, "ERRO CRÍTICO ao registrar usuário com ExternalId: {ExternalId}", externalId);
-                throw;
+                throw new InvalidOperationException("Erro ao salvar os dados. Verifique se o usuário já está cadastrado.");
             }
         }
 

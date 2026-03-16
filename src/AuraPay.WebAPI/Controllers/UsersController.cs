@@ -29,10 +29,15 @@ namespace AuraPay.WebAPI.Controllers
         //}
 
         /// <summary>
-        /// Cria um novo usuário.
+        /// Sincroniza um novo usuário autenticado pelo Supabase.
         /// </summary>
         /// <remarks>
-        /// Ele extrai o ID do provedor de identidade do Token e cria o registro local, incluindo a conta bancária inicial.
+        /// **Fluxo de Autenticação:**
+        /// 1. O usuário deve se autenticar primeiro no **Supabase Auth**.
+        /// 2. O `access_token` retornado pelo Supabase deve ser inserido no botão **Authorize** (Bearer).
+        /// 3. Este endpoint extrai o `ExternalId` (claim 'sub') do token para criar o perfil local e uma conta bancária com bônus inicial.
+        /// 
+        /// *Nota: Se o usuário já estiver sincronizado, retornará erro 400.*        
         /// </remarks>
         /// <param name="request">Dados básicos do perfil (Nome, Documento, etc).</param>
         /// <response code="200">Usuário sincronizado e conta criada com sucesso.</response>
