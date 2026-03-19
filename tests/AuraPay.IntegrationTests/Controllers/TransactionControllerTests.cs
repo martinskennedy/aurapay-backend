@@ -29,13 +29,19 @@ namespace AuraPay.IntegrationTests.Controllers
         public async Task Transfer_ShouldReturnOk_WhenRequestIsValid()
         {
             // 1. Arrange
-            var userAId = Guid.NewGuid();
-            TestAuthHandler.UserId = userAId; // Define o usuário autenticado para o teste
+            var userId = Guid.NewGuid();
+            TestAuthHandler.UserId = userId; // Define o usuário autenticado para o teste
+
+            // Simulação de um hash de senha para o teste
+            string mockHash = BCrypt.Net.BCrypt.HashPassword("senha123");
 
             // Usando o construtor internal visível via InternalsVisibleTo
-            var userA = new User(userAId, "Usuário Teste", "teste@aurapay.com", "12345678900", userAId);
+            var userA = new User("Usuário Teste", "teste@aurapay.com", "12345678900", mockHash);
 
-            var accA = new Account(userAId, "777777");
+            // Forçamos o ID do objeto para bater com o do Token do TestAuthHandler
+            typeof(User).GetProperty("Id")?.SetValue(userA, userId);
+
+            var accA = new Account(userId, "777777");
             accA.Deposit(1000m); // Garante saldo para a transferência
 
             var accB = new Account(Guid.NewGuid(), "888888");
@@ -53,10 +59,11 @@ namespace AuraPay.IntegrationTests.Controllers
             var response = await _client.PostAsJsonAsync("/api/transactions/transfer", request);
 
             // 3. Assert
-            if (response.StatusCode != HttpStatusCode.OK)
+            if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"A API retornou erro {response.StatusCode}: {errorContent}");
+                // Isso ajuda muito a debugar se o erro for 401 ou 404
+                throw new Exception($"Erro na API: {response.StatusCode} - {errorContent}");
             }
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
