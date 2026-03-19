@@ -90,7 +90,7 @@ namespace AuraPay.Application.Services
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("Transferência negada: {Motivo}. Origem: {UserId}", ex.Message, originUserId);
-                throw; // Deixa o Middleware retornar 400
+                throw; 
             }
             catch (Exception ex)
             {
@@ -99,12 +99,12 @@ namespace AuraPay.Application.Services
             }
         }
 
-        public async Task<IEnumerable<TransactionResponseDto>> GetHistoryAsync(Guid externalId)
+        public async Task<IEnumerable<TransactionResponseDto>> GetHistoryAsync(Guid userId)
         {
-            _logger.LogInformation("Buscando histórico para o ExternalId: {ExternalId}", externalId);
+            _logger.LogInformation("Buscando histórico para o UserId: {UserId}", userId);
 
             // 1. Achar o usuário local pelo ID do Supabase
-            var user = await _userRepository.GetByExternalIdAsync(externalId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) throw new KeyNotFoundException("Usuário não sincronizado.");
 
             // 2. Achar a conta do usuário

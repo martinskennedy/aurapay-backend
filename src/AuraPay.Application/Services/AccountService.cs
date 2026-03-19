@@ -33,36 +33,51 @@ namespace AuraPay.Application.Services
             if (existingAccount != null)
             {
                 _logger.LogWarning("Falha ao criar conta: Usuário {UserId} já possui a conta {AccountNumber}.", userId, existingAccount.AccountNumber);
-                throw new Exception("O utilizador já possui uma conta ativa.");
+                throw new InvalidOperationException("O utilizador já possui uma conta ativa.");
             }
 
             // 2. Gerar um número de conta único (Simulação)
-            var accountNumber = GenerateAccountNumber();
+            string accountNumber;
+            bool isDuplicate;
+
+            // Para garantir a unicidade, verificamos se o número gerado já existe no banco de dados
+            do
+            {
+                accountNumber = GenerateAccountNumber();
+                isDuplicate = await _accountRepository.GetByAccountNumberAsync(accountNumber) != null;
+            } while (isDuplicate);
 
             // 3. Criar a nova entidade de conta
             var newAccount = new Account(userId, accountNumber);
 
-            // 4. Persistir no banco de dados via Repositório e UoW
-            await _accountRepository.AddAsync(newAccount);
-
-            var success = await _unitOfWork.CommitAsync() > 0;
-
-            if (!success)
+            try
             {
-                _logger.LogError("Erro crítico ao persistir a conta para o usuário {UserId} no banco de dados.", userId);
-                throw new Exception("Não foi possível salvar a conta. Tente novamente mais tarde.");
+                // 4. Persistir no banco de dados via Repositório e UoW
+                await _accountRepository.AddAsync(newAccount);
+
+                var success = await _unitOfWork.CommitAsync();
+
+                if (success <= 0)
+                {
+                    _logger.LogError("Erro crítico ao persistir a conta para o usuário {UserId} no banco de dados.", userId);
+                    throw new Exception("Não foi possível salvar a conta. Tente novamente mais tarde.");
+                }
+
+                _logger.LogInformation("Conta {AccNumber} criada com sucesso para o usuário {UserId}.", accountNumber, userId);
+
+                // 5. Retornar o DTO para a API
+                return new AccountDto(
+                    newAccount.Id,
+                    newAccount.AccountNumber,
+                    newAccount.Balance,
+                    newAccount.CreatedAt
+                );
             }
-
-            _logger.LogInformation("Conta {AccNumber} criada com sucesso para o usuário {UserId}.",
-                accountNumber, userId);
-
-            // 5. Retornar o DTO para a API
-            return new AccountDto(
-                newAccount.Id,
-                newAccount.AccountNumber,
-                newAccount.Balance,
-                newAccount.CreatedAt
-            );
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao salvar conta para o usuário {UserId}.", userId);
+                throw; // Re-throw para que a camada superior possa lidar com a resposta adequada
+            }
         }
 
         public async Task<AccountDto?> GetBalanceAsync(Guid userId)

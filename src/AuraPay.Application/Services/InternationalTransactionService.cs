@@ -41,6 +41,7 @@ namespace AuraPay.Application.Services
             _logger = logger;
         }
 
+        // Este método calcula a prévia da remessa internacional, incluindo taxas e conversão cambial
         public async Task<InternationalTransferPreviewDto> CreatePreviewAsync(decimal amountBrl)
         {
             // Busca cotação real da AwesomeAPI
@@ -60,15 +61,16 @@ namespace AuraPay.Application.Services
             );
         }
 
-        public async Task<bool> ExecuteTransferAsync(Guid externalUserId, InternationalTransferRequestDto request)
+        public async Task<bool> ExecuteTransferAsync(Guid userId, InternationalTransferRequestDto request)
         {
-            // 1. ExternalId (Supabase) para o User local
-            var user = await _userRepository.GetByExternalIdAsync(externalUserId);
-            if (user == null) throw new KeyNotFoundException("Usuário não sincronizado no sistema local.");
+
+            // 1. Busca usuário pelo Id
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) throw new KeyNotFoundException("Usuário não encontrado no sistema.");
 
             _logger.LogInformation("Iniciando Remessa Internacional: Usuário {UserId}, Valor {Amount} BRL", user.Id, request.AmountBrl);
 
-            // 2. Buscamos a conta usando o ID interno (user.Id)
+            // 2. Busca a conta pelo Id do usuário
             var account = await _accountRepository.GetByUserIdAsync(user.Id);
             if (account == null) throw new KeyNotFoundException("Conta de origem não encontrada.");
 
@@ -76,15 +78,12 @@ namespace AuraPay.Application.Services
             {
                 // Reutiliza a lógica do Preview para garantir que as taxas batam
                 var preview = await CreatePreviewAsync(request.AmountBrl);
-
                 decimal totalToDeduct = Math.Round(preview.TotalToDeductBrl, 2);
 
                 // Executa o saque do valor TOTAL (valor enviado + taxas)
-                // O método Withdraw da sua Entidade Account já valida saldo insuficiente
+                // O método Withdraw já valida saldo insuficiente
                 account.Withdraw(totalToDeduct);
 
-                // No portfólio, registramos a transação como uma saída (TransferOut)
-                // No futuro, você pode criar um TransactionType.InternationalTransfer
                 var transactionEntry = new Transaction(account.Id, totalToDeduct, TransactionType.TransferOut);
 
                 await _transactionRepository.AddAsync(transactionEntry);

@@ -13,6 +13,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,9 +46,16 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<ICurrencyExchangeService, CurrencyExchangeService>();
 builder.Services.AddScoped<IInternationalTransactionService, InternationalTransactionService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 // 4. CONFIGURAÇÃO JWT
-var supabaseUrl = "https://tgfipyvrglihoqwtfkug.supabase.co/auth/v1";
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = builder.Configuration["JwtSettings:Secret"];
+
+if (string.IsNullOrEmpty(secretKey))
+    throw new Exception("JWT Secret Key não configurada!");
+
+var key = Encoding.ASCII.GetBytes(secretKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -55,16 +64,19 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.Authority = supabaseUrl;
-    options.RequireHttpsMetadata = false; // Em desenvolvimento pode ser false
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = true,
-        ValidIssuer = supabaseUrl,
+        ValidIssuer = jwtSettings["Issuer"],
         ValidateAudience = true,
-        ValidAudience = "authenticated", // Padrão do Supabase
+        ValidAudience = jwtSettings["Audience"],
         ValidateLifetime = true,
-        NameClaimType = "sub" // Diz ao .NET que o "sub" do JWT é o identificador único do usuário
+        ClockSkew = TimeSpan.Zero, // Remove a tolerância de 5 min para expiração exata
+        NameClaimType = ClaimTypes.NameIdentifier // Permite que o ClaimTypes.NameIdentifier seja usado para obter o UserId no BaseController
     };
 });
 

@@ -12,6 +12,6 @@ namespace AuraPay.Application.DTOs
             decimal IofAmount,         // Imposto (ex: R$ 11,00)
             decimal ServiceFee,        // Nossa taxa (ex: R$ 20,00)
             decimal TotalToDeductBrl,  // O que sai da conta (1000 + 11 + 20)
-            decimal FinalAmount     // O que chega no destino (1000 / 5.40)
+            decimal FinalAmount        // O que chega no destino (1000 / 5.40)
         );
 }
