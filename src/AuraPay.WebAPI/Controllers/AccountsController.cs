@@ -11,16 +11,11 @@ namespace AuraPay.WebAPI.Controllers
     public class AccountsController : BaseController
     {
         private readonly IAccountService _accountService;
-        private readonly IUserService _userService;
         private readonly ILogger<AccountsController> _logger;
 
-        public AccountsController(
-            IAccountService accountService,
-            IUserService userService,
-            ILogger<AccountsController> logger)
+        public AccountsController(IAccountService accountService, ILogger<AccountsController> logger)
         {
             _accountService = accountService;
-            _userService = userService;
             _logger = logger;
         }
 
@@ -38,25 +33,19 @@ namespace AuraPay.WebAPI.Controllers
         [HttpGet("balance")]
         public async Task<IActionResult> GetBalance()
         {
-            // 1. Extraímos o ExternalId (sub do Supabase) do Token
-            var externalId = GetExternalId();
+            // 1. Extrai o UserId diretamente dos Claims do Token JWT
+            var userId = GetUserId();
 
-            _logger.LogInformation("Consulta de saldo solicitada pelo ExternalId: {ExternalId}", externalId);
+            _logger.LogInformation("Consulta de saldo solicitada pelo UserId: {UserId}", userId);
 
-            // 2. Buscamos o NOSSO UserId interno usando o ExternalId
-            var user = await _userService.GetByExternalIdAsync(externalId);
-
-            if (user == null)
-            {
-                _logger.LogWarning("Tentativa de acesso a saldo por usuário não sincronizado: {ExternalId}", externalId);
-                return NotFound(new { message = "Usuário não encontrado no sistema local." });
-            }
-
-            // 3. Buscamos o saldo usando o ID interno (Proteção de Domínio)
-            var account = await _accountService.GetBalanceAsync(user.Id);
+            // 2. Busca o saldo
+            var account = await _accountService.GetBalanceAsync(userId);
 
             if (account == null)
+            {
+                _logger.LogWarning("Conta bancária não encontrada para o UserId: {UserId}", userId);
                 return NotFound(new { message = "Conta bancária não encontrada." });
+            }
 
             return Ok(account);
         }

@@ -9,7 +9,7 @@ namespace AuraPay.WebAPI.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class InternationalTransactionsController : ControllerBase
+    public class InternationalTransactionsController : BaseController
     {
         private readonly IInternationalTransactionService _internationalService;
         private readonly ILogger<InternationalTransactionsController> _logger;
@@ -41,14 +41,9 @@ namespace AuraPay.WebAPI.Controllers
         [HttpPost("transfer")]
         public async Task<IActionResult> ExecuteTransfer([FromBody] InternationalTransferRequestDto request)
         {
-            // Extrai o UserId do Token JWT
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = GetUserId();
 
-            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-            {
-                _logger.LogWarning("Tentativa de transferência sem UserId válido no token.");
-                return Unauthorized("Usuário não identificado.");
-            }
+            _logger.LogInformation("Iniciando remessa internacional para o usuário {UserId}", userId);
 
             try
             {

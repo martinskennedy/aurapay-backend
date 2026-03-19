@@ -12,12 +12,10 @@ namespace AuraPay.WebAPI.Controllers
     public class CardsController : BaseController
     {
         private readonly ICardService _cardService;
-        private readonly IUserService _userService;
 
-        public CardsController(ICardService cardService, IUserService userService)
+        public CardsController(ICardService cardService)
         {
             _cardService = cardService;
-            _userService = userService;
         }
 
         /// <summary>
@@ -29,12 +27,9 @@ namespace AuraPay.WebAPI.Controllers
         [HttpPost("virtual")]
         public async Task<IActionResult> CreateVirtualCard([FromBody] CreateCardRequest request)
         {
-            var externalId = GetExternalId();
-            var user = await _userService.GetByExternalIdAsync(externalId);
+            var userId = GetUserId();
 
-            if (user == null) return Unauthorized();
-
-            var card = await _cardService.CreateVirtualCardAsync(user.Id, request.HolderName);
+            var card = await _cardService.CreateVirtualCardAsync(userId, request.HolderName);
             return Ok(card);
         }
 
@@ -48,13 +43,10 @@ namespace AuraPay.WebAPI.Controllers
         [HttpGet("my-cards")]
         public async Task<IActionResult> GetMyCards()
         {
-            var externalId = GetExternalId();
-            var user = await _userService.GetByExternalIdAsync(externalId);
-
-            if (user == null) return Unauthorized();
+            var userId = GetUserId();
 
             // Chamando o método da interface conforme você pontuou
-            var cards = await _cardService.GetMyCardsAsync(user.Id);
+            var cards = await _cardService.GetMyCardsAsync(userId);
             return Ok(cards);
         }
 
@@ -71,14 +63,11 @@ namespace AuraPay.WebAPI.Controllers
         [HttpGet("{cardId}/reveal")]
         public async Task<IActionResult> RevealCardData(Guid cardId)
         {
-            var externalId = GetExternalId();
-            var user = await _userService.GetByExternalIdAsync(externalId);
-
-            if (user == null) return Unauthorized();
+            var userId = GetUserId();
 
             try
             {
-                var sensitiveData = await _cardService.GetSensitiveDataAsync(cardId, user.Id);
+                var sensitiveData = await _cardService.GetSensitiveDataAsync(cardId, userId);
                 if (sensitiveData == null) return NotFound(new { message = "Cartão não encontrado." });
 
                 return Ok(sensitiveData);
@@ -98,12 +87,9 @@ namespace AuraPay.WebAPI.Controllers
         [HttpPatch("{cardId}/toggle-status")]
         public async Task<IActionResult> ToggleStatus(Guid cardId)
         {
-            var externalId = GetExternalId();
-            var user = await _userService.GetByExternalIdAsync(externalId);
+            var userId = GetUserId();
 
-            if (user == null) return Unauthorized();
-
-            var result = await _cardService.ToggleCardStatusAsync(cardId, user.Id);
+            var result = await _cardService.ToggleCardStatusAsync(cardId, userId);
 
             if (!result) return BadRequest(new { message = "Não foi possível alterar o status do cartão." });
 

@@ -1,4 +1,5 @@
 ﻿using AuraPay.Application.DTOs;
+using AuraPay.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -9,58 +10,48 @@ namespace AuraPay.WebAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : BaseController
     {
-        private readonly IConfiguration _config;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IUserService _userService;
+        private readonly ITokenService _tokenService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IConfiguration config, IHttpClientFactory httpClientFactory)
+        public AuthController(IUserService userService, ITokenService tokenService, ILogger<AuthController> logger)
         {
-            _config = config;
-            _httpClientFactory = httpClientFactory;
+            _userService = userService;
+            _tokenService = tokenService;
+            _logger = logger;
         }
-
         /// <summary>
-        /// Realiza a autenticação do usuário junto ao Supabase Auth.
+        /// Realiza a autenticação do usuário no sistema AuraPay.
         /// </summary>
         /// <remarks>
-        /// Ao fornecer e-mail e senha válidos, você receberá um **accessToken**.
-        /// Use este token no botão "Authorize" (campo Bearer) para acessar as rotas protegidas.
+        /// Valida e-mail e senha no banco local e retorna um JWT assinado internamente.
         /// </remarks>
-        /// <param name="request">Credenciais de acesso (Email e Password).</param>
-        /// <returns>O token de acesso JWT.</returns>
-        /// <response code="200">Autenticação bem-sucedida, retorna o token JWT.</response>
-        /// <response code="401">E-mail ou senha inválidos.</response>
-        /// <response code="500">Erro na comunicação com o provedor de identidade (Supabase).</response>
-        [AllowAnonymous] // Permite logar sem estar autenticado
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var client = _httpClientFactory.CreateClient();
+            _logger.LogInformation("Tentativa de login para o e-mail: {Email}", request.Email);
 
-            // A URL do seu Supabase Auth
-            var supabaseUrl = "https://tgfipyvrglihoqwtfkug.supabase.co/auth/v1/token?grant_type=password";
-            var apiKey = _config["Supabase:AnonKey"]; // Pega do secrets
+            // 1. Valida as credenciais usando o seu UserService
+            var user = await _userService.ValidateUserAsync(request.Email, request.Password);
 
-            client.DefaultRequestHeaders.Add("apikey", apiKey);
-
-            var response = await client.PostAsJsonAsync(supabaseUrl, new
+            if (user == null)
             {
-                email = request.Email,
-                password = request.Password
-            });
-
-            if (!response.IsSuccessStatusCode)
-            //return Unauthorized("E-mail ou senha inválidos no Supabase.");
-            {
-                var errorBody = await response.Content.ReadAsStringAsync();
-                //_logger.LogError("Erro do Supabase: {Error}", errorBody); // Se tiver logger
-                return StatusCode((int)response.StatusCode, $"Supabase diz: {errorBody}");
+                _logger.LogWarning("Falha na autenticação: E-mail ou senha incorretos para {Email}", request.Email);
+                return Unauthorized(new { message = "E-mail ou senha inválidos." });
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(content);
-            var token = doc.RootElement.GetProperty("access_token").GetString();
+            // 2. Gera Token JWT
+            // Passa o objeto UserDto para o TokenService extrair o ID e o Nome para os Claims
+            var token = _tokenService.GenerateToken(user);
 
-            return Ok(new { accessToken = token });
+            _logger.LogInformation("Usuário {UserId} autenticado com sucesso.", user.Id);
+
+            return Ok(new
+            {
+                accessToken = token,
+                user = user
+            });
         }
     }
 }

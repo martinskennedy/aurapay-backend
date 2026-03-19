@@ -7,20 +7,18 @@ namespace AuraPay.WebAPI.Controllers
     public abstract class BaseController : ControllerBase
     {
         /// <summary>
-        /// Extrai o ID único do Supabase (sub) de dentro do Token JWT.
+        /// Extrai o ID real do usuário (chave primária do banco AuraPay) de dentro do Token JWT.
         /// </summary>
-        protected Guid GetExternalId()
+        protected Guid GetUserId()
         {
-            // O Supabase mapeia o ID do usuário no claim 'sub' ou 'nameidentifier'
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-
-            if (claim == null || !Guid.TryParse(claim.Value, out var guidId))
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !Guid.TryParse(claim.Value, out var userId))
             {
                 // Lançamos uma exceção personalizada ou genérica que o Middleware capturará
-                throw new UnauthorizedAccessException("Usuário não identificado no token de autenticação.");
+                throw new UnauthorizedAccessException("Usuário não identificado no token.");
             }
 
-            return guidId;
+            return userId;
         }
     }
 }
