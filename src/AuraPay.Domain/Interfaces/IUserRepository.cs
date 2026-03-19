@@ -10,7 +10,6 @@ namespace AuraPay.Domain.Interfaces
     public interface IUserRepository
     {
         Task<User?> GetByIdAsync(Guid id);
-        Task<User?> GetByExternalIdAsync(Guid externalId); // Para buscar pelo ID do Supabase
         Task<User?> GetByEmailAsync(string email);
         Task AddAsync(User user);
     }
