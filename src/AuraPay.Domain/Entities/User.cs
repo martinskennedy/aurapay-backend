@@ -14,29 +14,38 @@ namespace AuraPay.Domain.Entities
         public string FullName { get; private set; }
         public string Email { get; private set; }
         public string Document { get; private set; } // CPF no Brasil
-        public Guid ExternalId { get; private set; } // O ID que vem do Supabase (Auth)
+        public string PasswordHash { get; private set; } // O ID que vem do Supabase (Auth)
 
         public Account? Account { get; private set; }
 
         protected User() { }
 
-        public User(string fullName, string email, string document, Guid externalId)
+        public User(string fullName, string email, string document, string passwordHash)
         {
             Id = Guid.NewGuid();
             FullName = fullName;
             Email = email;
             Document = document;
-            ExternalId = externalId;
+            PasswordHash = passwordHash;
         }
 
-        // Construtor INTERNAL para Testes
-        internal User(Guid id, string fullName, string email, string document, Guid externalId)
+        // Construtor para Testes
+        internal User(Guid id, string fullName, string email, string document, string passwordHash)
         {
             Id = id;
             FullName = fullName;
             Email = email;
             Document = document;
-            ExternalId = externalId;
+            PasswordHash = passwordHash;
+        }
+
+        // Método para atualizar a senha no futuro(ex: Esqueci minha senha)
+        public void UpdatePassword(string newPasswordHash)
+        {
+            if (string.IsNullOrWhiteSpace(newPasswordHash))
+                throw new ArgumentException("O hash da senha não pode ser vazio.");
+
+            PasswordHash = newPasswordHash;
         }
     }
 }

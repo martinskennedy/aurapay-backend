@@ -15,12 +15,25 @@ namespace AuraPay.Infrastructure.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Card> Cards { get; set; }
-
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuraPayDbContext).Assembly);
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.ToTable("Users");
+                entity.HasKey(u => u.Id);
+
+                // Garante que não existam dois usuários com o mesmo e-mail ou CPF
+                entity.HasIndex(u => u.Email).IsUnique();
+                entity.HasIndex(u => u.Document).IsUnique();
+
+                entity.Property(u => u.FullName).IsRequired().HasMaxLength(150);
+                entity.Property(u => u.Email).IsRequired().HasMaxLength(100);
+                entity.Property(u => u.PasswordHash).IsRequired();
+            });
 
             modelBuilder.Entity<Transaction>(entity =>
             {

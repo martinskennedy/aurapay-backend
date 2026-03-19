@@ -18,12 +18,11 @@ namespace AuraPay.Infrastructure.Data.Mappings
             builder.Property(u => u.FullName).IsRequired().HasMaxLength(100);
             builder.Property(u => u.Email).IsRequired().HasMaxLength(150);
             builder.Property(u => u.Document).IsRequired().HasMaxLength(14); // CPF
-            builder.Property(u => u.ExternalId).IsRequired();
+            builder.Property(u => u.PasswordHash).IsRequired();
 
             // Índices para buscas rápidas
             builder.HasIndex(u => u.Email).IsUnique();
             builder.HasIndex(u => u.Document).IsUnique();
-            builder.HasIndex(u => u.ExternalId);
         }
     }
 }
