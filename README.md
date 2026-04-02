@@ -49,6 +49,12 @@ AuraPay.sln
 
 ---
 
+## 📸 API em funcionamento (Swagger)
+
+![Swagger](./docs/swagger.png)
+
+---
+
 ## ⚙️ Funcionalidades
 
 * Cadastro e autenticação de usuário (JWT)
