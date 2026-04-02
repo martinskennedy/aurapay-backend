@@ -37,6 +37,7 @@ namespace AuraPay.WebAPI.Middlewares
                 UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
                 KeyNotFoundException => (int)HttpStatusCode.NotFound,
                 InvalidOperationException => (int)HttpStatusCode.BadRequest,
+                HttpRequestException => (int)HttpStatusCode.ServiceUnavailable,
                 _ => (int)HttpStatusCode.InternalServerError
             };
 
