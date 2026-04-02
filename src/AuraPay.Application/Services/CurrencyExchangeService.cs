@@ -1,12 +1,7 @@
 ﻿using AuraPay.Application.Interfaces;
 using AuraPay.Domain.Enums;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace AuraPay.Application.Services
 {
@@ -21,14 +16,14 @@ namespace AuraPay.Application.Services
             _logger = logger;
         }
 
-        // Método para obter a cotação em tempo real usando a AwesomeAPI
         public async Task<decimal> GetLiveRateAsync(Currency from, Currency to)
         {
             var client = _httpClientFactory.CreateClient();
 
-            // Exemplo de URL AwesomeAPI: https://economia.awesomeapi.com.br/last/USD-BRL
-            var pair = $"{from}-{to}";
-            var url = $"https://economia.awesomeapi.com.br/last/{pair}";
+            var baseCurrency = from.ToString();
+            var targetCurrency = to.ToString();
+
+            var url = $"https://open.er-api.com/v6/latest/{baseCurrency}";
 
             try
             {
@@ -36,26 +31,78 @@ namespace AuraPay.Application.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError("Erro ao consultar cotação. Status: {Status}", response.StatusCode);
-                    throw new Exception("Não foi possível obter a cotação em tempo real.");
+                    _logger.LogError(
+                        "Erro ao consultar cotação na open.er-api. Status: {Status}. URL: {Url}",
+                        response.StatusCode,
+                        url
+                    );
+
+                    throw new HttpRequestException("Não foi possível obter a cotação em tempo real.");
                 }
 
                 var content = await response.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(content);
 
-                // A AwesomeAPI retorna um objeto com a chave do par, ex: "USDBRL"
-                var key = $"{from}{to}";
-                if (doc.RootElement.TryGetProperty(key, out var data))
+                using var doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("result", out var resultElement))
                 {
-                    var bid = data.GetProperty("bid").GetString();
-                    return decimal.Parse(bid!, System.Globalization.CultureInfo.InvariantCulture);
+                    var result = resultElement.GetString();
+
+                    if (!string.Equals(result, "success", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogError(
+                            "A open.er-api retornou resultado inválido. URL: {Url}. Conteúdo: {Content}",
+                            url,
+                            content
+                        );
+
+                        throw new InvalidOperationException("A API de câmbio retornou uma resposta inválida.");
+                    }
                 }
 
-                throw new Exception("Formato de resposta da API de câmbio inválido.");
+                if (!root.TryGetProperty("rates", out var ratesElement))
+                {
+                    _logger.LogError(
+                        "A resposta da open.er-api não contém 'rates'. URL: {Url}. Conteúdo: {Content}",
+                        url,
+                        content
+                    );
+
+                    throw new InvalidOperationException("Formato de resposta da API de câmbio inválido.");
+                }
+
+                if (!ratesElement.TryGetProperty(targetCurrency, out var rateElement))
+                {
+                    _logger.LogError(
+                        "A moeda de destino {TargetCurrency} não foi encontrada na resposta. URL: {Url}. Conteúdo: {Content}",
+                        targetCurrency,
+                        url,
+                        content
+                    );
+
+                    throw new InvalidOperationException("A moeda de destino não foi encontrada na resposta da API de câmbio.");
+                }
+
+                var rate = rateElement.GetDecimal();
+
+                _logger.LogInformation(
+                    "Cotação obtida com sucesso. Base: {BaseCurrency}. Destino: {TargetCurrency}. Taxa: {Rate}",
+                    baseCurrency,
+                    targetCurrency,
+                    rate
+                );
+
+                return rate;
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                _logger.LogCritical(ex, "Falha na comunicação com serviço de câmbio externo.");
+                _logger.LogCritical(ex, "Erro ao interpretar resposta da open.er-api. URL: {Url}", url);
+                throw new InvalidOperationException("Erro ao processar a resposta da API de câmbio.");
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogCritical(ex, "Falha na comunicação com serviço de câmbio externo. URL: {Url}", url);
                 throw;
             }
         }
